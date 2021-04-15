@@ -1,0 +1,94 @@
+[0m[7m[1m[31m FAIL [39m[22m[27m[0m [2mtests/[22m[1mlist_helper.test.js[22m
+  [32m✓[39m [2mdummy returns one (3 ms)[22m
+  total likes
+    [32m✓[39m [2mwhen list is empty, 0 should be returned[22m
+    [32m✓[39m [2mwhen list has only one blog, equals the likes of that (1 ms)[22m
+    [32m✓[39m [2mlist with many blogs[22m
+  favorite post
+    [32m✓[39m [2mwhen list is empty, an empty object should be returned (1 ms)[22m
+    [32m✓[39m [2mwhen list has only one blog, it returns it (1 ms)[22m
+    [32m✓[39m [2mwhen list has many blogs, it should return the one with the most votes[22m
+  author with the most posts
+    [31m✕[39m [2monly one author (20 ms)[22m
+
+[1m[31m  [1m● [22m[1mauthor with the most posts › only one author[39m[22m
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  -  0[39m
+    [31m+ Received  + 55[39m
+
+    [2m  Object {[22m
+    [31m+   "author": Array [[39m
+    [31m+     Array [[39m
+    [31m+       Object {[39m
+    [31m+         "__v": 0,[39m
+    [31m+         "_id": "5a422b891b54a676234d17fa",[39m
+    [31m+         "author": "Robert C. Martin",[39m
+    [31m+         "likes": 10,[39m
+    [31m+         "title": "First class tests",[39m
+    [31m+         "url": "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll",[39m
+    [31m+       },[39m
+    [31m+       Object {[39m
+    [31m+         "__v": 0,[39m
+    [31m+         "_id": "5a422ba71b54a676234d17fb",[39m
+    [2m          "author": "Robert C. Martin",[22m
+    [31m+         "likes": 0,[39m
+    [31m+         "title": "TDD harms architecture",[39m
+    [31m+         "url": "http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html",[39m
+    [31m+       },[39m
+    [31m+       Object {[39m
+    [31m+         "__v": 0,[39m
+    [31m+         "_id": "5a422bc61b54a676234d17fc",[39m
+    [31m+         "author": "Robert C. Martin",[39m
+    [31m+         "likes": 2,[39m
+    [31m+         "title": "Type wars",[39m
+    [31m+         "url": "http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html",[39m
+    [31m+       },[39m
+    [31m+     ],[39m
+    [31m+     Array [[39m
+    [31m+       Object {[39m
+    [31m+         "__v": 0,[39m
+    [31m+         "_id": "5a422aa71b54a676234d17f8",[39m
+    [31m+         "author": "Edsger W. Dijkstra",[39m
+    [31m+         "likes": 5,[39m
+    [31m+         "title": "Go To Statement Considered Harmful",[39m
+    [31m+         "url": "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",[39m
+    [31m+       },[39m
+    [31m+       Object {[39m
+    [31m+         "__v": 0,[39m
+    [31m+         "_id": "5a422b3a1b54a676234d17f9",[39m
+    [31m+         "author": "Edsger W. Dijkstra",[39m
+    [31m+         "likes": 12,[39m
+    [31m+         "title": "Canonical string reduction",[39m
+    [31m+         "url": "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",[39m
+    [31m+       },[39m
+    [31m+     ],[39m
+    [31m+     Array [[39m
+    [31m+       Object {[39m
+    [31m+         "__v": 0,[39m
+    [31m+         "_id": "5a422a851b54a676234d17f7",[39m
+    [31m+         "author": "Michael Chan",[39m
+    [31m+         "likes": 7,[39m
+    [31m+         "title": "React patterns",[39m
+    [31m+         "url": "https://reactpatterns.com/",[39m
+    [31m+       },[39m
+    [31m+     ],[39m
+    [31m+   ],[39m
+    [2m  }[22m
+[2m[22m
+[2m    [0m [90m 124 | [39m  test([32m'only one author'[39m[33m,[39m () [33m=>[39m {[0m[22m
+[2m    [0m [90m 125 | [39m    [36mconst[39m result [33m=[39m listHelper[33m.[39mmostBlogs(listWithManyBlogs)[0m[22m
+[2m    [0m[31m[1m>[22m[2m[39m[90m 126 | [39m    expect(result)[33m.[39mtoEqual({[0m[22m
+[2m    [0m [90m     | [39m                   [31m[1m^[22m[2m[39m[0m[22m
+[2m    [0m [90m 127 | [39m      author[33m:[39m [32m'Robert C. Martin'[39m[0m[22m
+[2m    [0m [90m 128 | [39m    })[0m[22m
+[2m    [0m [90m 129 | [39m  })[0m[22m
+[2m[22m
+[2m      [2mat Object.<anonymous> ([22m[2m[0m[36mtests/list_helper.test.js[39m[0m[2m:126:20)[22m[2m[22m
+
+[1mTest Suites: [22m[1m[31m1 failed[39m[22m, 1 total
+[1mTests:       [22m[1m[31m1 failed[39m[22m, [1m[32m7 passed[39m[22m, 8 total
+[1mSnapshots:   [22m0 total
+[1mTime:[22m        0.732 s, estimated 1 s
+[2mRan all test suites[22m[2m.[22m
