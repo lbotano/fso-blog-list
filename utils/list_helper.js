@@ -8,7 +8,7 @@ const totalLikes = (posts) => {
   return posts.length === 0
     ? 0
     : posts.map(post => post.likes)
-    .reduce((accu, likes) => accu + likes)
+      .reduce((accu, likes) => accu + likes)
 }
 
 const favoriteBlog = (posts) => {
@@ -22,7 +22,7 @@ const mostBlogs = (posts) => {
   const blogsOfAuthor =
     _.orderBy(
       _.values(_.groupBy(posts, 'author')),
-    [function(o) { return o.length; }], ['desc'])[0]
+      [o => o.length], ['desc'])[0]
 
   return posts.length === 0
     ? {}
@@ -36,7 +36,7 @@ const mostLikes = (posts) => {
   const blogsOfAuthor =
     _.orderBy(
       _.values(_.groupBy(posts, 'author')),
-    [function(o) { return _.sumBy(o, 'likes') }], ['desc'])[0]
+      [function(o) { return _.sumBy(o, 'likes') }], ['desc'])[0]
 
   return posts.length === 0
     ? {}
