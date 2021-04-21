@@ -49,6 +49,38 @@ const initialBlogs = [
   }
 ]
 
+const initialUsers = [
+  {
+    _id: '607ef18d5111d988409d5863',
+    username: 'lbotano',
+    name: 'Lautaro Bernabé Otaño',
+    password: 'lautaro200',
+    __v: 0
+  },
+  {
+    _id: '607ef18d5111d988409d5864',
+    username: 'djdsm',
+    name: 'San Martín',
+    password: 'sanmartin200',
+    __v: 0
+  },
+  {
+    _id: '607ef18d5111d988409d5865',
+    username: 'jmbelgrano',
+    name: 'Juan Manuel Belgrano',
+    password: 'belgrano500',
+    __v: 0
+  },
+  {
+    _id: '607ef18d5111d988409d5866',
+    username: 'lbotano2',
+    name: 'Lautaro Bernabé Otaño',
+    password: 'lautaro200',
+    __v: 0
+  }
+]
+
 module.exports = {
-  initialBlogs
+  initialBlogs,
+  initialUsers
 }
