@@ -2,18 +2,27 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 
 const app = require('../app')
+const api = supertest(app)
+
+const User = require('../models/user')
 const Blog = require('../models/blog')
 const helper = require('./test-helper')
 
-const api = supertest(app)
 
 beforeEach(async () => {
   await Blog.deleteMany({})
+  await User.deleteMany({})
+
+  const userObjects = helper.initialUsers
+    .map(user => new User(user))
+  const userPromiseArray = userObjects.map(user => user.save())
+  await Promise.all(userPromiseArray)
 
   const blogObjects = helper.initialBlogs
     .map(blog => new Blog(blog))
   const promiseArray = blogObjects.map(blog => blog.save())
   await Promise.all(promiseArray)
+
 })
 
 test('all blogs are returned', async () => {
@@ -112,6 +121,41 @@ test('update a single blog', async () => {
   expect(putResponse.body).toMatchObject(modifiedBlog)
 })
 
-afterAll(() => {
-  mongoose.connection.close()
+test('blog is created with the info of the first user', async () => {
+  const userAssigned = helper.initialUsers[0]
+  const newBlog = {
+    likes: 54,
+    title: 'REST APIs',
+    author: 'John Wang',
+    url: 'https://example.com/',
+    user: userAssigned
+  }
+
+  const postResponse = await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const finalBlogs = await api
+    .get('/api/blogs')
+
+  const expectedBlog = {
+    id: postResponse.body.id,
+    likes: newBlog.likes,
+    title: newBlog.title,
+    author: newBlog.author,
+    url: newBlog.url,
+    user: {
+      username: userAssigned.username,
+      name: userAssigned.name,
+      id: userAssigned._id
+    }
+  }
+
+  expect(finalBlogs.body).toContainEqual(expectedBlog)
+})
+
+afterAll(async () => {
+  await mongoose.connection.close()
 })
