@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt')
+
 const initialBlogs = [
   {
     _id: '5a422a851b54a676234d17f7',
@@ -86,7 +88,10 @@ const initialUsers = [
   }
 ]
 
+const passwordToHash = async (password) => await bcrypt.hash(password, 10)
+
 module.exports = {
   initialBlogs,
-  initialUsers
+  initialUsers,
+  passwordToHash
 }

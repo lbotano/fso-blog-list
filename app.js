@@ -1,17 +1,28 @@
+const config = require('./utils/config')
 const express = require('express')
+const mongoose = require('mongoose')
 const app = express()
 require('express-async-errors')
-const config = require('./utils/config')
 const cors = require('cors')
-const mongoose = require('mongoose')
-
 const blogsRouter = require('./controllers/blogs')
 const usersRouter = require('./controllers/users')
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
 
-const mongoUrl = config.MONGODB_URI
-mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
+try {
+  mongoose.connect(
+    config.MONGODB_URI,
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useFindAndModify: false,
+      useCreateIndex: true
+    }
+  )
+  logger.info('Connected to MongoDB')
+} catch (error) {
+  logger.error('Error connecting to MongoDB:', error.message)
+}
 
 app.use(cors())
 app.use(express.json())

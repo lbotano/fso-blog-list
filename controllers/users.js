@@ -1,5 +1,6 @@
 const usersRouter = require('express').Router()
 const bcrypt = require('bcrypt')
+require('express-async-errors')
 
 const User = require('../models/user')
 
@@ -7,12 +8,15 @@ const User = require('../models/user')
 usersRouter.post('/', async (request, response) => {
   const body = request.body
 
-  const saltRounds = 10
-  const passwordHash = await bcrypt.hash(body.password, saltRounds)
-
-  if (body.password.length < 3) {
+  if (!('password' in body)) {
+    response.status(400).json({ error: 'password is required' })
+  }
+  else if (body.password.length < 3) {
     response.status(400).json({ error: 'password too short' })
   } else {
+    const saltRounds = 10
+    const passwordHash = await bcrypt.hash(body.password, saltRounds)
+
     const user = new User({
       username: body.username,
       name: body.name,

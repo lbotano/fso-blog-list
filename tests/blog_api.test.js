@@ -1,28 +1,57 @@
-const mongoose = require('mongoose')
 const supertest = require('supertest')
-
+const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
+const helper = require('./test-helper')
+const config = require('../utils/config')
 const app = require('../app')
 const api = supertest(app)
 
-const User = require('../models/user')
 const Blog = require('../models/blog')
-const helper = require('./test-helper')
+const User = require('../models/user')
 
+beforeAll(async (done) => {
+  jest.setTimeout(15000)
+  mongoose.connect(
+    config.MONGODB_URI,
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useFindAndModify: false,
+      useCreateIndex: true
+    }
+  )
+    .then(() => {
+      done()
+    })
+    .catch((error) => {
+      console.error('Error connecting to test MongoDB:', error.message)
+    })
+})
 
 beforeEach(async () => {
   await Blog.deleteMany({})
   await User.deleteMany({})
-
-  const userObjects = helper.initialUsers
-    .map(user => new User(user))
-  const userPromiseArray = userObjects.map(user => user.save())
-  await Promise.all(userPromiseArray)
 
   const blogObjects = helper.initialBlogs
     .map(blog => new Blog(blog))
   const promiseArray = blogObjects.map(blog => blog.save())
   await Promise.all(promiseArray)
 
+  let userObjects = helper.initialUsers
+  userObjects = await Promise.all(userObjects.map(async (user) => {
+    return {
+      ...user, password: await helper.passwordToHash(user.password)
+    }
+  }))
+  userObjects = userObjects.map(user =>
+    new User({
+      username: user.username,
+      name: user.name,
+      passwordHash: user.password
+    })
+  )
+  const userPromiseArray = userObjects.map(user => user.save())
+  await Promise.all(userPromiseArray)
 })
 
 test('all blogs are returned', async () => {
@@ -121,39 +150,94 @@ test('update a single blog', async () => {
   expect(putResponse.body).toMatchObject(modifiedBlog)
 })
 
-test('blog is created with the info of the first user', async () => {
-  const userAssigned = helper.initialUsers[0]
-  const newBlog = {
-    likes: 54,
-    title: 'REST APIs',
-    author: 'John Wang',
-    url: 'https://example.com/',
-    user: userAssigned
-  }
-
-  const postResponse = await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(201)
-    .expect('Content-Type', /application\/json/)
-
-  const finalBlogs = await api
-    .get('/api/blogs')
-
-  const expectedBlog = {
-    id: postResponse.body.id,
-    likes: newBlog.likes,
-    title: newBlog.title,
-    author: newBlog.author,
-    url: newBlog.url,
-    user: {
-      username: userAssigned.username,
-      name: userAssigned.name,
-      id: userAssigned._id
+describe('user creation', () => {
+  test('creates a user', async () => {
+    const newUser = {
+      username: 'saavedra',
+      name: 'Cornelio Saavedra',
+      password: 'patricio'
     }
-  }
 
-  expect(finalBlogs.body).toContainEqual(expectedBlog)
+    const passwordHash = await helper.passwordToHash(newUser.password)
+
+    const savedUser = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
+
+    expect(savedUser.body).toMatchObject({
+      username: newUser.username,
+      name: newUser.name
+    })
+  })
+
+  test('throws error when user has no username', async () => {
+    const newUser = {
+      name: 'Cornelio Saavedra',
+      password: 'patricio'
+    }
+
+    const savedUser = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(savedUser.body.error)
+      .toEqual('User validation failed: username: Path `username` is required.')
+  })
+
+  test('throws error when user has no password', async () => {
+    const newUser = {
+      username: 'saavedra',
+      name: 'Cornelio Saavedra'
+    }
+
+    const savedUser = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(savedUser.body.error)
+      .toEqual('password is required')
+  })
+
+  test('throws error when user password has < 3 characters', async () => {
+    const newUser = {
+      username: 'saavedra',
+      name: 'Cornelio Saavedra',
+      password: '1a'
+    }
+
+    const savedUser = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(savedUser.body.error)
+      .toEqual('password too short')
+  })
+
+  test('throws error when username has < 3 characters', async () => {
+    const newUser = {
+      username: 'sa',
+      name: 'Cornelio Saavedra',
+      password: 'patricio'
+    }
+
+    const savedUser = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+
+    expect(savedUser.body.error)
+      .toEqual('User validation failed: username: Path `username` (`sa`) is shorter than the minimum allowed length (3).')
+  })
+
 })
 
 afterAll(async () => {
