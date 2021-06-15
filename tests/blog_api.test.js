@@ -29,125 +29,149 @@ beforeAll(async (done) => {
 })
 
 beforeEach(async () => {
+  // Clean database
   await Blog.deleteMany({})
   await User.deleteMany({})
 
-  const blogObjects = helper.initialBlogs
-    .map(blog => new Blog(blog))
-  const promiseArray = blogObjects.map(blog => blog.save())
-  await Promise.all(promiseArray)
+  const userPassword = await helper.passwordToHash('michael')
+  // Add user that creates blogs
+  const blogUser = await new User({
+    username: 'theUser',
+    name: 'The User',
+    passwordHash: userPassword
+  }).save()
+  await Promise.all(
+    helper.initialBlogs.map((blog) => {
+      blog.user = blogUser._id.toString()
+      return new Blog(blog).save()
+    })
+  )
 
+  // Add users
   let userObjects = helper.initialUsers
   userObjects = await Promise.all(userObjects.map(async (user) => {
     return {
-      ...user, password: await helper.passwordToHash(user.password)
+      ...user, passwordHash: await helper.passwordToHash(user.password)
     }
   }))
   userObjects = userObjects.map(user =>
     new User({
       username: user.username,
       name: user.name,
-      passwordHash: user.password
+      passwordHash: user.passwordHash
     })
   )
+
   const userPromiseArray = userObjects.map(user => user.save())
   await Promise.all(userPromiseArray)
 })
 
-test('all blogs are returned', async () => {
-  const response = await api.get('/api/blogs')
+describe('blogs', () => {
+  test('all blogs are returned', async () => {
+    const response = await api.get('/api/blogs')
 
-  expect(response.body).toHaveLength(helper.initialBlogs.length)
-})
+    expect(response.body).toHaveLength(helper.initialBlogs.length)
+  })
 
-test('all blogs have the "id" property', async () => {
-  const response = await api.get('/api/blogs')
+  test('all blogs have the "id" property', async () => {
+    const response = await api.get('/api/blogs')
 
-  expect(response.body[0]).toHaveProperty('id')
-})
+    expect(response.body[0]).toHaveProperty('id')
+  })
 
-test('blog is saved', async () => {
-  const newBlog = {
-    title: 'How to make egg',
-    author: 'William Williams',
-    url: 'https://www.google.com/search?q=How+to+make+egg',
-    likes: 151
-  }
+  test('blog is saved', async () => {
+    const newBlog = {
+      title: 'How to make egg',
+      author: 'William Williams',
+      url: 'https://www.google.com/search?q=How+to+make+egg',
+      likes: 151
+    }
 
-  const response = await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(201)
-    .expect('Content-Type', /application\/json/)
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
 
-  // Check if blog has correct data
-  expect(response.body)
-    .toMatchObject(newBlog)
+    // Check if blog has correct data
+    expect(response.body)
+      .toMatchObject(newBlog)
 
-  // Check if the total amount of blogs increased
-  const responseGet = await api.get('/api/blogs')
-  expect(responseGet.body).toHaveLength(helper.initialBlogs.length + 1)
-})
+    // Check if the total amount of blogs increased
+    const responseGet = await api.get('/api/blogs')
+    expect(responseGet.body).toHaveLength(helper.initialBlogs.length + 1)
+  })
 
-test('blog has 0 likes if not specified', async () => {
-  const newBlog = {
-    title: 'How to make egg',
-    author: 'William Williams',
-    url: 'https://www.google.com/search?q=How+to+make+egg'
-  }
+  test('blog has 0 likes if not specified', async () => {
+    const newBlog = {
+      title: 'How to make egg',
+      author: 'William Williams',
+      url: 'https://www.google.com/search?q=How+to+make+egg'
+    }
 
-  const response = await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(201)
-    .expect('Content-Type', /application\/json/)
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+      .expect('Content-Type', /application\/json/)
 
-  expect(response.body)
-    .toHaveProperty('likes', 0)
-})
+    expect(response.body)
+      .toHaveProperty('likes', 0)
+  })
 
-test('blog with no title or url is not saved', async () => {
-  const newBlog = {
-    author: 'John Doe',
-    likes: 43
-  }
+  test('blog with no title or url is not saved', async () => {
+    const newBlog = {
+      author: 'John Doe',
+      likes: 43
+    }
 
-  await api
-    .post('/api/blogs')
-    .send(newBlog)
-    .expect(400)
-})
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+  })
 
-test('delete a single blog', async () => {
-  const response = await api.get('/api/blogs')
-  const postId = response.body[0].id
+  test('delete a single blog', async () => {
+    const response = await api.get('/api/blogs')
+    const postId = response.body[0].id
 
-  await api
-    .delete(`/api/blogs/${postId}`)
-    .expect(200)
+    await api
+      .delete(`/api/blogs/${postId}`)
+      .expect(200)
 
-  const responseFinal = await api.get('/api/blogs')
-  expect(responseFinal.body).toHaveLength(helper.initialBlogs.length - 1)
-})
+    const responseFinal = await api.get('/api/blogs')
+    expect(responseFinal.body).toHaveLength(helper.initialBlogs.length - 1)
+  })
 
-test('update a single blog', async () => {
-  const modifiedBlog = {
-    likes: 700,
-    title: 'React patterns',
-    author: 'Michael Chan',
-    url: 'https://reactpatterns.com/'
-  }
+  test('update a single blog', async () => {
+    const modifiedBlog = {
+      likes: 700,
+      title: 'React patterns',
+      author: 'Michael Chan',
+      url: 'https://reactpatterns.com/'
+    }
 
-  const response = await api.get('/api/blogs')
-  const postId = response.body[0].id
+    const response = await api.get('/api/blogs')
+    const postId = response.body[0].id
 
-  const putResponse = await api
-    .put(`/api/blogs/${postId}`)
-    .send(modifiedBlog)
-    .expect(200)
-    .expect('Content-Type', /application\/json/)
+    const putResponse = await api
+      .put(`/api/blogs/${postId}`)
+      .send(modifiedBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
 
-  expect(putResponse.body).toMatchObject(modifiedBlog)
+    expect(putResponse.body).toMatchObject(modifiedBlog)
+  })
+
+  test('blog has user info', async () => {
+    const response = await api.get('/api/blogs')
+    const user = response.body[0].user
+
+    expect(user).toMatchObject({
+      username: 'theUser',
+      name: 'The User'
+    })
+  })
 })
 
 describe('user creation', () => {
