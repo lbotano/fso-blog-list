@@ -261,7 +261,60 @@ describe('user creation', () => {
     expect(savedUser.body.error)
       .toEqual('User validation failed: username: Path `username` (`sa`) is shorter than the minimum allowed length (3).')
   })
+})
 
+describe('user token authorization', () => {
+  test('generates token', async () => {
+    const correctInfo = {
+      username: 'lbotano',
+      password: 'lautaro200'
+    }
+
+    const token = await api
+      .post('/api/login')
+      .send(correctInfo)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    expect(token.body.username).toBe(correctInfo.username)
+    expect(token.body.name).toBe('Lautaro Bernabé Otaño')
+    expect(token.body.token).toBeDefined()
+    expect(token.body.token).not.toBe('')
+  })
+
+  test('rejects wrong password', async () => {
+    const wrongInfo = {
+      username: 'lbotano',
+      password: 'lautaro201'
+    }
+
+    const token = await api
+      .post('/api/login')
+      .send(wrongInfo)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    expect(token.body).toEqual({
+      error: 'invalid username or password'
+    })
+  })
+
+  test('rejects non-existent user', async () => {
+    const wrongInfo = {
+      username: 'fdsafdsafŋ¶ŧ®dað¢Æ§ÐŦ',
+      password: 'fasdfdsa'
+    }
+
+    const token = await api
+      .post('/api/login')
+      .send(wrongInfo)
+      .expect(401)
+      .expect('Content-Type', /application\/json/)
+
+    expect(token.body).toEqual({
+      error: 'invalid username or password'
+    })
+  })
 })
 
 afterAll(async () => {
