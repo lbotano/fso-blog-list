@@ -80,11 +80,16 @@ describe('blogs', () => {
   })
 
   test('blog is saved', async () => {
+    const token = await api
+      .post('/api/login')
+      .send({ username: 'lbotano', password: 'lautaro200' })
+
     const newBlog = {
       title: 'How to make egg',
       author: 'William Williams',
       url: 'https://www.google.com/search?q=How+to+make+egg',
-      likes: 151
+      likes: 151,
+      token: token.body.token
     }
 
     const response = await api
@@ -94,6 +99,7 @@ describe('blogs', () => {
       .expect('Content-Type', /application\/json/)
 
     // Check if blog has correct data
+    delete newBlog.token
     expect(response.body)
       .toMatchObject(newBlog)
 
@@ -103,10 +109,15 @@ describe('blogs', () => {
   })
 
   test('blog has 0 likes if not specified', async () => {
+    const token = await api
+      .post('/api/login')
+      .send({ username: 'lbotano', password: 'lautaro200' })
+
     const newBlog = {
       title: 'How to make egg',
       author: 'William Williams',
-      url: 'https://www.google.com/search?q=How+to+make+egg'
+      url: 'https://www.google.com/search?q=How+to+make+egg',
+      token: token.body.token
     }
 
     const response = await api
@@ -120,9 +131,14 @@ describe('blogs', () => {
   })
 
   test('blog with no title or url is not saved', async () => {
+    const token = await api
+      .post('/api/login')
+      .send({ username: 'lbotano', password: 'lautaro200' })
+
     const newBlog = {
       author: 'John Doe',
-      likes: 43
+      likes: 43,
+      token: token.body.token
     }
 
     await api
