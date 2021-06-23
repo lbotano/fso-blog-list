@@ -149,16 +149,47 @@ describe('blogs', () => {
       .expect(400)
   })
 
-  test('delete a single blog', async () => {
+  test('owner can delete blog', async () => {
+    const token = (await api
+      .post('/api/login')
+      .send({ username: 'theUser', password: 'michael' })
+      .expect(200))
+      .body.token
+
     const response = await api.get('/api/blogs')
     const postId = response.body[0].id
 
     await api
       .delete(`/api/blogs/${postId}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
 
     const responseFinal = await api.get('/api/blogs')
     expect(responseFinal.body).toHaveLength(helper.initialBlogs.length - 1)
+  })
+
+  test('cannot delete others blog', async () => {
+    const token = (await api
+      .post('/api/login')
+      .send({ username: 'lbotano', password: 'lautaro200' }))
+      .body.token
+
+    const response = await api.get('/api/blogs')
+    const postId = response.body[0].id
+
+    await api
+      .delete(`/api/blogs/${postId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(401)
+  })
+
+  test('cannot blog without credentials', async () => {
+    const response = await api.get('/api/blogs')
+    const postId = response.body[0].id
+
+    await api
+      .delete(`/api/blogs/${postId}`)
+      .expect(401)
   })
 
   test('update a single blog', async () => {
