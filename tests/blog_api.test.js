@@ -80,26 +80,26 @@ describe('blogs', () => {
   })
 
   test('blog is saved', async () => {
-    const token = await api
+    const token = (await api
       .post('/api/login')
-      .send({ username: 'lbotano', password: 'lautaro200' })
+      .send({ username: 'lbotano', password: 'lautaro200' }))
+      .body.token
 
     const newBlog = {
       title: 'How to make egg',
       author: 'William Williams',
       url: 'https://www.google.com/search?q=How+to+make+egg',
-      likes: 151,
-      token: token.body.token
+      likes: 151
     }
 
     const response = await api
       .post('/api/blogs')
+      .set('authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
     // Check if blog has correct data
-    delete newBlog.token
     expect(response.body)
       .toMatchObject(newBlog)
 
@@ -109,19 +109,20 @@ describe('blogs', () => {
   })
 
   test('blog has 0 likes if not specified', async () => {
-    const token = await api
+    const token = (await api
       .post('/api/login')
-      .send({ username: 'lbotano', password: 'lautaro200' })
+      .send({ username: 'lbotano', password: 'lautaro200' }))
+      .body.token
 
     const newBlog = {
       title: 'How to make egg',
       author: 'William Williams',
-      url: 'https://www.google.com/search?q=How+to+make+egg',
-      token: token.body.token
+      url: 'https://www.google.com/search?q=How+to+make+egg'
     }
 
     const response = await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(201)
       .expect('Content-Type', /application\/json/)
@@ -131,18 +132,19 @@ describe('blogs', () => {
   })
 
   test('blog with no title or url is not saved', async () => {
-    const token = await api
+    const token = (await api
       .post('/api/login')
-      .send({ username: 'lbotano', password: 'lautaro200' })
+      .send({ username: 'lbotano', password: 'lautaro200' }))
+      .body.token
 
     const newBlog = {
       author: 'John Doe',
-      likes: 43,
-      token: token.body.token
+      likes: 43
     }
 
     await api
       .post('/api/blogs')
+      .set('Authorization', `Bearer ${token}`)
       .send(newBlog)
       .expect(400)
   })
